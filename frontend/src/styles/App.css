@@ -748,3 +748,124 @@ tr:hover td { background: #f8fafc; }
   color: #ffffff;
 }
 
+/* MONGODB ATLAS CLOUD INTEGRATION STYLES */
+.cloud-status-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-inset);
+  border: 1px solid var(--border-symbol-bar);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  user-select: none;
+}
+.cloud-icon-active {
+  color: #059669;
+}
+.cloud-icon-muted {
+  color: #94a3b8;
+}
+.cloud-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.cloud-pulse-dot.connected {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+.cloud-pulse-dot.unconfigured {
+  background: #f59e0b;
+}
+.cloud-pulse-dot.disconnected {
+  background: #ef4444;
+}
+
+.results-subtabs {
+  display: flex;
+  gap: 8px;
+  max-width: 1100px;
+  margin: 0 auto 16px;
+}
+.subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.subtab-btn:hover {
+  color: var(--text-heading);
+  background: var(--surface-hover);
+}
+.subtab-btn.active {
+  background: var(--ui-accent);
+  color: #ffffff;
+  border-color: var(--ui-accent);
+  box-shadow: 0 2px 10px rgba(0, 139, 117, 0.25);
+}
+.subtab-btn .count {
+  background: rgba(255, 255, 255, 0.2);
+  color: currentColor;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+}
+
+.atlas-setup-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 24px 8px;
+  color: #b45309;
+  font-size: 12px;
+}
+[data-theme="dark"] .atlas-setup-banner {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+.atlas-setup-banner strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+.atlas-setup-banner code {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+[data-theme="dark"] .atlas-setup-banner code {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.delete-btn {
+  color: #94a3b8;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+.delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+

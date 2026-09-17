@@ -11,47 +11,61 @@ GaganSetu/
 │   ├── public/                    # Public files copied into the build
 │   └── src/
 │       ├── main.tsx               # React entry point
-│       ├── App.tsx                # Mission controls and application state
+│       ├── App.tsx                # Mission controls, flight deck & Atlas archive UI
 │       ├── components/
 │       │   └── MissionMap.tsx      # Geographic and schematic map views
 │       ├── integrations/
+│       │   ├── api.ts              # MongoDB Atlas cloud client
 │       │   └── webmcp.ts           # Optional browser automation tools
 │       ├── styles/                # Base styles, themes and animations
 │       └── assets/                # Bundled artwork
 ├── backend/
-│   └── src/model/
-│       ├── network.ts             # Pads, corridors, geometry and routing
-│       └── simulator.ts           # Simulation state, energy and scenarios
-├── docs/
-│   ├── PROJECT_REVIEW.md          # Historical code-review snapshot
-│   └── reference-images/          # Map-tile experiments
-├── .openai/hosting.json           # Existing static hosting configuration
+│   └── src/
+│       ├── db.ts                  # MongoDB Atlas Mongoose connection & lifecycle
+│       ├── server.ts              # Express API server for mission telemetry & cloud archive
+│       ├── models/
+│       │   └── MissionRun.ts      # Mongoose schema for persistent simulation runs
+│       └── model/
+│           ├── network.ts         # Pads, corridors, geometry and aerodynamic vectors
+│           └── simulator.ts       # Simulation state, energy, PNR, fleet & anti-herding
+├── .env.example                   # Environment variable template
+├── .env                           # Local credentials (ignored by Git)
 ├── package.json                  # Shared dependencies and commands
-├── package-lock.json
-├── vite.config.ts                # Frontend root, imports and build output
-├── tsconfig*.json                # Shared TypeScript configuration
-└── dist/                         # Generated production site (ignored)
+├── vite.config.ts                # Frontend root, API proxy and build output
+└── dist/                         # Generated production site
 ```
 
-`frontend/` contains the interface and browser integrations. `backend/` contains the framework-independent simulation and routing logic. **There is currently no HTTP backend server, API, or database.** The frontend imports this logic and runs it in the browser, preserving existing behavior. The backend folder is not a place for secrets or private server-only code.
-
-Frontend imports use `@backend/model/network` and `@backend/model/simulator`. Vite and TypeScript resolve `@backend/` to `backend/src/`. Model modules do not import UI components.
+`frontend/` contains the flight deck interface. `backend/src/model/` contains the pure simulation and routing logic. `backend/src/server.ts` provides a secure Node.js/Express API service connecting to **MongoDB Atlas** via Mongoose, ensuring credentials in `.env` remain private.
 
 ## Run locally
 
-Run commands from the project root, using the existing Node.js installation (verified with Node 22.21).
+Run commands from the project root using Node.js:
 
 ```sh
 npm ci
-npm run dev
 ```
 
-Open the local address printed by Vite. There is one dependency installation and one development process; no separate backend process is required.
+### 1. Configure MongoDB Atlas (Optional but Recommended)
+Copy `.env.example` to `.env` and set your MongoDB Atlas connection string:
+```env
+PORT=5050
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/gagansetu?retryWrites=true&w=majority
+```
+
+### 2. Start Application
+```sh
+# Start both Backend API server & Frontend UI concurrently:
+npm run dev:all
+
+# Or run separately:
+npm run server   # Starts Express API server on http://localhost:5050
+npm run dev      # Starts Vite client on http://localhost:5173
+```
 
 ```sh
-npm run build     # Type-check and generate the production site in dist/
+npm run build     # Type-check and generate production build in dist/
 npm run preview   # Serve the production build locally
-npm run lint      # Check frontend, model and configuration code
+npm run lint      # Check code quality via oxlint
 ```
 
 ## Where to make changes

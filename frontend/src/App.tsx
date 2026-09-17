@@ -1,8 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { Navigation, Play, Pause, RotateCcw, Download, ArrowRight, Route, Radio, Battery, CircleCheck, TriangleAlert, SlidersHorizontal, Map as MapIcon, Network, FlaskConical, X, ChevronRight, Activity, CircleHelp, PanelLeftClose, PanelLeftOpen, Sun, Moon, Wind, Mountain, Users } from 'lucide-react'
+import { Navigation, Play, Pause, RotateCcw, Download, ArrowRight, Route, Radio, Battery, CircleCheck, TriangleAlert, SlidersHorizontal, Map as MapIcon, Network, FlaskConical, X, ChevronRight, Activity, CircleHelp, PanelLeftClose, PanelLeftOpen, Sun, Moon, Wind, Mountain, Users, Cloud, Database, Trash2 } from 'lucide-react'
 import MissionMap from './components/MissionMap'
 import { registerMissionTools } from './integrations/webmcp'
+import { fetchHealth, saveMissionToCloud, fetchCloudRuns, deleteCloudRun } from './integrations/api'
+import type { CloudDbStatus, SavedCloudRun } from './integrations/api'
 import { PADS, padById, shortestRoute } from '@backend/model/network'
 import { DEFAULT_CONFIG, createSimulation, startSimulation, advanceSimulation, changePadStatus, alternatives, formatTime, runToCompletion, hasActiveFlights } from '@backend/model/simulator'
 import type { Config, SimState } from '@backend/model/simulator'
@@ -32,6 +34,11 @@ export default function App(){
   })
   const [trials,setTrials]=useState<Trial[]>([])
   const [notice,setNotice]=useState('')
+  const [cloudDb,setCloudDb]=useState<CloudDbStatus | null>(null)
+  const [cloudRuns,setCloudRuns]=useState<SavedCloudRun[]>([])
+  const [cloudLoading,setCloudLoading]=useState(false)
+  const [savingCloud,setSavingCloud]=useState(false)
+  const [resultsSubTab,setResultsSubTab]=useState<'scenarios'|'atlas'>('scenarios')
   const stateRef=useRef(state)
   useLayoutEffect(()=>{stateRef.current=state},[state])
   const active=hasActiveFlights(state)
@@ -41,6 +48,36 @@ export default function App(){
   const locked=active
   const selectedPad=padById(selected),observed=state.observations[selected]
   const selectedCandidate=alternatives(state,true).find(p=>p.id===selected)!
+
+  const refreshCloudStatus=()=>{
+    void fetchHealth().then(h=>{
+      if(h)setCloudDb(h.database)
+      else setCloudDb({status:'disconnected',message:'API server not connected. Run npm run dev:all to start backend.'})
+    })
+  }
+  const loadCloudRuns=()=>{
+    setCloudLoading(true)
+    void fetchCloudRuns().then(res=>{
+      if(res.ok)setCloudRuns(res.runs)
+      if(res.dbStatus)setCloudDb(res.dbStatus)
+      setCloudLoading(false)
+    })
+  }
+
+  useEffect(()=>{
+    refreshCloudStatus()
+    const timer=window.setInterval(refreshCloudStatus,12000)
+    return ()=>window.clearInterval(timer)
+  },[])
+
+  useEffect(()=>{
+    if(tab==='results'&&resultsSubTab==='atlas'){
+      void fetchCloudRuns().then(res=>{
+        if(res.ok)setCloudRuns(res.runs)
+        if(res.dbStatus)setCloudDb(res.dbStatus)
+      })
+    }
+  },[tab,resultsSubTab])
 
   useEffect(()=>{
     document.documentElement.setAttribute('data-theme',theme)
@@ -71,6 +108,30 @@ export default function App(){
     const body={project:'GaganSetu',version:'0.1.0',dataType:'synthetic',model:'fixed speed; distance-based energy; bidirectional corridors; zero turn penalty',config:state.config,outcome:{status:state.status,target:state.target,timeSeconds:state.time,distanceKm:state.distance,energyKwh:state.energy,diverted:state.diverted,failure:state.failure},events:state.events,observations:state.observations,history:state.history,trials:trials.map(t=>({scenario:t.label,config:t.run.config,status:t.run.status,target:t.run.target,distanceKm:t.run.distance,timeSeconds:t.run.time,energyKwh:t.run.energy,diverted:t.run.diverted,updates:t.run.updates,failure:t.run.failure}))}
     const url=URL.createObjectURL(new Blob([JSON.stringify(body,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='gagansetu-run.json';a.click();window.setTimeout(()=>URL.revokeObjectURL(url),1000);setNotice('Run exported with its parameters and event history.')
   }
+  async function handleSaveToAtlas(){
+    if(savingCloud)return
+    setSavingCloud(true)
+    setNotice('Connecting to MongoDB Atlas to archive mission...')
+    const res = await saveMissionToCloud(state)
+    setSavingCloud(false)
+    if(res.ok){
+      setNotice('✓ Mission successfully archived in MongoDB Atlas cluster!')
+      loadCloudRuns()
+    } else {
+      setNotice(`❌ ${res.error || 'Failed to archive mission to MongoDB Atlas.'}`)
+    }
+  }
+
+  async function handleDeleteCloudRun(id: string){
+    const res = await deleteCloudRun(id)
+    if(res.ok){
+      setCloudRuns(prev=>prev.filter(r=>r._id!==id))
+      setNotice('Mission removed from MongoDB Atlas.')
+    } else {
+      setNotice(`❌ ${res.error || 'Failed to delete mission from Atlas.'}`)
+    }
+  }
+
   function compare(){
     const scenarios=[{label:'Normal flight',scenario:'normal' as const,notificationDelay:0},{label:'Closure · immediate update',scenario:'closure' as const,notificationDelay:0},{label:'Closure · 30s delay',scenario:'closure' as const,notificationDelay:30},{label:'Closure · 90s delay',scenario:'closure' as const,notificationDelay:90}]
     setTrials(scenarios.map(s=>({label:s.label,run:runToCompletion({...config,...s})})));setTab('results')
@@ -161,8 +222,16 @@ export default function App(){
         )}
 
         <div className="top-actions">
+          <div className="cloud-status-chip" title={cloudDb?.message || 'Connecting to backend...'}>
+            <Cloud size={14} className={cloudDb?.status === 'connected' ? 'cloud-icon-active' : 'cloud-icon-muted'} />
+            <span>{cloudDb?.status === 'connected' ? 'Atlas Online' : cloudDb?.status === 'unconfigured' ? 'Atlas Setup' : 'Atlas Offline'}</span>
+            <span className={`cloud-pulse-dot ${cloudDb?.status || 'disconnected'}`} />
+          </div>
           <button className="button mobile-tab" onClick={() => setTab(tab === 'mission' ? 'results' : 'mission')}>{tab === 'mission' ? 'Results' : 'Mission'}</button>
-          <button className="button button-white" onClick={exportRun}><Download size={16}/><span>Export run</span></button>
+          <button className="button button-white" onClick={handleSaveToAtlas} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
+            <Cloud size={16}/><span>{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
+          </button>
+          <button className="button button-white" onClick={exportRun}><Download size={16}/><span>Export JSON</span></button>
         </div>
       </header>
       <div className="page-content">
@@ -393,9 +462,128 @@ export default function App(){
           </div>
         ) : (
           <div className="results-wrapper">
-            <section className="panel results-panel">
-              <div className="results-heading"><div><h2>Scenario comparison</h2><p>One reactive planner. Identical aircraft and route; different closure and notification conditions.</p></div><button className="button button-primary" onClick={compare}><Play size={16}/> Run four scenarios</button></div>
-              {trials.length?<div className="table-scroll"><table><thead><tr><th>Scenario</th><th>Outcome</th><th>Landing pad</th><th>Duration</th><th>Distance</th><th>Energy left</th></tr></thead><tbody>{trials.map(t=><tr key={t.label}><td>{t.label}</td><td><span className={`result-tag ${t.run.status==='landed'?'good':'bad'}`}>{t.run.status==='landed'?(t.run.diverted?'Diverted & landed':'Landed'):'Infeasible / stopped'}</span></td><td>{t.run.status==='landed'?padById(t.run.target).name:'—'}</td><td>{formatTime(t.run.time)}</td><td>{t.run.distance.toFixed(1)} km</td><td>{t.run.energy.toFixed(1)} kWh</td></tr>)}</tbody></table><p className="results-note">Computed outcomes for this synthetic model. Equal outcomes are valid; delay does not necessarily change the result. This version does not compare a deadline-aware algorithm.</p></div>:<div className="empty-results"><FlaskConical size={38}/><h3>Put the route through four conditions</h3><p>Compare a normal flight with a destination closure reported immediately, after 30 seconds and after 90 seconds.</p><button className="button button-white" onClick={compare}>Run scenario checks <ArrowRight size={15}/></button></div>}</section>
+            <div className="results-subtabs">
+              <button type="button" className={`subtab-btn ${resultsSubTab === 'scenarios' ? 'active' : ''}`} onClick={() => setResultsSubTab('scenarios')}>
+                <FlaskConical size={14}/> Scenario Benchmarks {trials.length > 0 && <span className="count">{trials.length}</span>}
+              </button>
+              <button type="button" className={`subtab-btn ${resultsSubTab === 'atlas' ? 'active' : ''}`} onClick={() => { setResultsSubTab('atlas'); loadCloudRuns() }}>
+                <Cloud size={14}/> MongoDB Atlas Archive {cloudRuns.length > 0 && <span className="count">{cloudRuns.length}</span>}
+              </button>
+            </div>
+
+            {resultsSubTab === 'scenarios' ? (
+              <section className="panel results-panel">
+                <div className="results-heading">
+                  <div>
+                    <h2>Scenario comparison</h2>
+                    <p>One reactive planner. Identical aircraft and route; different closure and notification conditions.</p>
+                  </div>
+                  <button className="button button-primary" onClick={compare}><Play size={16}/> Run four scenarios</button>
+                </div>
+                {trials.length ? (
+                  <div className="table-scroll">
+                    <table>
+                      <thead><tr><th>Scenario</th><th>Outcome</th><th>Landing pad</th><th>Duration</th><th>Distance</th><th>Energy left</th></tr></thead>
+                      <tbody>{trials.map(t=><tr key={t.label}><td>{t.label}</td><td><span className={`result-tag ${t.run.status==='landed'?'good':'bad'}`}>{t.run.status==='landed'?(t.run.diverted?'Diverted & landed':'Landed'):'Infeasible / stopped'}</span></td><td>{t.run.status==='landed'?padById(t.run.target).name:'—'}</td><td>{formatTime(t.run.time)}</td><td>{t.run.distance.toFixed(1)} km</td><td>{t.run.energy.toFixed(1)} kWh</td></tr>)}</tbody>
+                    </table>
+                    <p className="results-note">Computed outcomes for this synthetic model. Equal outcomes are valid; delay does not necessarily change the result. This version does not compare a deadline-aware algorithm.</p>
+                  </div>
+                ) : (
+                  <div className="empty-results">
+                    <FlaskConical size={38}/>
+                    <h3>Put the route through four conditions</h3>
+                    <p>Compare a normal flight with a destination closure reported immediately, after 30 seconds and after 90 seconds.</p>
+                    <button className="button button-white" onClick={compare}>Run scenario checks <ArrowRight size={15}/></button>
+                  </div>
+                )}
+              </section>
+            ) : (
+              <section className="panel results-panel">
+                <div className="results-heading">
+                  <div>
+                    <h2><Cloud size={18} style={{ verticalAlign: 'middle', marginRight: '6px' }}/> MongoDB Atlas Mission Archive</h2>
+                    <p>
+                      {cloudDb?.status === 'connected'
+                        ? `Connected to database "${cloudDb.dbName}" (${cloudRuns.length} cloud missions stored).`
+                        : cloudDb?.message || 'Database not connected.'}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="button button-white button-sm" onClick={loadCloudRuns} disabled={cloudLoading}>
+                      <RotateCcw size={14} className={cloudLoading ? 'spin' : ''}/> Refresh
+                    </button>
+                    <button className="button button-primary button-sm" onClick={handleSaveToAtlas} disabled={savingCloud}>
+                      <Cloud size={14}/> Save Current Flight
+                    </button>
+                  </div>
+                </div>
+
+                {cloudDb?.status === 'unconfigured' && (
+                  <div className="atlas-setup-banner">
+                    <Database size={22}/>
+                    <div>
+                      <strong>MongoDB Atlas Connection String Required</strong>
+                      <p>Open <code>.env</code> in the project directory and set your <code>MONGODB_URI</code> to your MongoDB Atlas cluster URI.</p>
+                    </div>
+                  </div>
+                )}
+
+                {cloudRuns.length > 0 ? (
+                  <div className="table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Date / Time</th>
+                          <th>Mission Title</th>
+                          <th>Route</th>
+                          <th>Outcome</th>
+                          <th>Duration</th>
+                          <th>Distance</th>
+                          <th>Energy Left</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cloudRuns.map(r => (
+                          <tr key={r._id}>
+                            <td>{new Date(r.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</td>
+                            <td>{r.title}</td>
+                            <td>{r.config.origin} → {r.outcome.target || r.config.destination}</td>
+                            <td>
+                              <span className={`result-tag ${r.outcome.status === 'landed' ? 'good' : 'bad'}`}>
+                                {r.outcome.status === 'landed' ? (r.outcome.diverted ? 'Diverted & Landed' : 'Landed') : r.outcome.status}
+                              </span>
+                            </td>
+                            <td>{formatTime(r.outcome.durationSeconds)}</td>
+                            <td>{r.outcome.distanceKm.toFixed(1)} km</td>
+                            <td>{r.outcome.energyLeftKwh.toFixed(1)} kWh</td>
+                            <td>
+                              <button
+                                className="icon-button icon-button-sm delete-btn"
+                                title="Delete from MongoDB Atlas"
+                                onClick={() => handleDeleteCloudRun(r._id)}
+                              >
+                                <Trash2 size={14}/>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-results">
+                    <Database size={38}/>
+                    <h3>No mission runs archived in Atlas yet</h3>
+                    <p>
+                      {cloudDb?.status === 'connected'
+                        ? 'Fly a mission and click "Save to Atlas" to populate your cloud database.'
+                        : 'Connect your MongoDB Atlas cluster in .env to start persisting flights.'}
+                    </p>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         )}
       </div>

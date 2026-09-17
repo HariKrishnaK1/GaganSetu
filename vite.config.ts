@@ -12,6 +12,12 @@ export default defineConfig({
   },
   server: {
     fs: { allow: [fileURLToPath(new URL('.', import.meta.url))] },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5050',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: fileURLToPath(new URL('./dist', import.meta.url)),

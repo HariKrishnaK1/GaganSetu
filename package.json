@@ -5,25 +5,35 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "tsx backend/src/server.ts",
+    "dev:all": "concurrently -n \"server,client\" -c \"cyan,magenta\" \"tsx backend/src/server.ts\" \"vite\"",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run --config vitest.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.43.0",
+    "mongoose": "^9.10.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "^10.0.5",
     "oxlint": "^1.79.0",
+    "tsx": "^4.23.13",
     "typescript": "~6.0.2",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
