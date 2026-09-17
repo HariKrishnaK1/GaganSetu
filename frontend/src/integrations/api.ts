@@ -62,9 +62,11 @@ export interface SavedCloudRun {
   }>
 }
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+
 export async function fetchHealth(): Promise<CloudHealthResponse | null> {
   try {
-    const res = await fetch('/api/health')
+    const res = await fetch(`${API_BASE}/api/health`)
     if (!res.ok) return null
     return await res.json()
   } catch {
@@ -106,7 +108,7 @@ export async function saveMissionToCloud(
         : [],
     }
 
-    const res = await fetch('/api/runs', {
+    const res = await fetch(`${API_BASE}/api/runs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -130,7 +132,7 @@ export async function fetchCloudRuns(): Promise<{
   error?: string
 }> {
   try {
-    const res = await fetch('/api/runs')
+    const res = await fetch(`${API_BASE}/api/runs`)
     const data = await res.json()
     if (!res.ok) return { ok: false, runs: [], error: data.error || 'Failed to fetch cloud runs.' }
     return { ok: true, runs: data.runs || [], dbStatus: data.dbStatus }
@@ -142,7 +144,7 @@ export async function fetchCloudRuns(): Promise<{
 
 export async function deleteCloudRun(id: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`/api/runs/${id}`, { method: 'DELETE' })
+    const res = await fetch(`${API_BASE}/api/runs/${id}`, { method: 'DELETE' })
     const data = await res.json()
     if (!res.ok || !data.ok) return { ok: false, error: data.error || 'Failed to delete.' }
     return { ok: true }
