@@ -126,8 +126,14 @@ app.delete('/api/runs/:id', async (req: Request, res: Response) => {
   }
 })
 
-// Start server and connect to MongoDB Atlas
-app.listen(PORT, async () => {
-  console.log(`\n?? [GaganSetu Server]: API server running on http://localhost:${PORT}`)
-  await connectDb()
-})
+// Start server if not running in a serverless environment (e.g., Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    console.log(`\n🚀 [GaganSetu Server]: API server running on http://localhost:${PORT}`)
+    await connectDb()
+  })
+} else {
+  void connectDb()
+}
+
+export default app
