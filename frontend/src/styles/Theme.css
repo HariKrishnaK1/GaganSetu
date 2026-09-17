@@ -1,0 +1,358 @@
+/* GaganSetu flight deck: shared visual system, independent of simulation state. */
+:root {
+  color-scheme: light;
+  --surface-base: #edf2fa;
+  --surface-shell: #f9fbff;
+  --surface-raised: #ffffff;
+  --surface-inset: #f0f4fb;
+  --surface-hover: #e8effb;
+  --surface-glass: rgba(255, 255, 255, .97);
+  --line: #d3deed;
+  --line-strong: #a9bbd4;
+  --ink: #253651;
+  --ink-title: #101f3a;
+  --ink-muted: #526681;
+  --ui-accent: #2856cf;
+  --ui-accent-hover: #2145ac;
+  --ui-accent-soft: #e5edff;
+  --ui-on-accent: #ffffff;
+  --ui-success: #16684e;
+  --ui-success-bg: #e4f5ee;
+  --ui-warning: #875207;
+  --ui-warning-bg: #fff1d8;
+  --ui-danger: #a72b49;
+  --ui-danger-bg: #fce9ee;
+  --map-route: #2856cf;
+  --map-divert: #b57413;
+  --map-corridor: #778da9;
+  --map-history: #607ca1;
+  --map-grid: #d6e0ee;
+  --map-zone: #fff0ce;
+  --map-zone-line: #b57413;
+  --deck-shadow: 0 10px 28px #233f6912, 0 2px 5px #233f6908;
+  --accent-shadow: 0 5px 16px #2856cf26;
+  --motion-ease: cubic-bezier(.2, .7, .25, 1);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-base: #0a101b;
+  --surface-shell: #101927;
+  --surface-raised: #162236;
+  --surface-inset: #0c1422;
+  --surface-hover: #22324c;
+  --surface-glass: rgba(18, 29, 46, .97);
+  --line: #2c3d56;
+  --line-strong: #536d90;
+  --ink: #dce6f6;
+  --ink-title: #f3f7ff;
+  --ink-muted: #a8b9d1;
+  --ui-accent: #9cbeff;
+  --ui-accent-hover: #c0d6ff;
+  --ui-accent-soft: #243d60;
+  --ui-on-accent: #10223e;
+  --ui-success: #91e2c1;
+  --ui-success-bg: #173c33;
+  --ui-warning: #f4cd8b;
+  --ui-warning-bg: #403321;
+  --ui-danger: #ffadbd;
+  --ui-danger-bg: #422937;
+  --map-route: #9cbeff;
+  --map-divert: #f4cd8b;
+  --map-corridor: #7087a7;
+  --map-history: #809abf;
+  --map-grid: #233147;
+  --map-zone: #403321;
+  --map-zone-line: #f4cd8b;
+  --deck-shadow: 0 14px 36px #02061155, inset 0 1px 0 #ffffff06;
+  --accent-shadow: 0 5px 20px #77a9ff20;
+}
+
+/* Map existing component tokens to the same palette in both themes. */
+:root, :root[data-theme] {
+  --bg-app: var(--surface-base);
+  --bg-topbar: var(--surface-shell);
+  --border-topbar: var(--line);
+  --text-main: var(--ink);
+  --text-muted: var(--ink-muted);
+  --text-heading: var(--ink-title);
+  --bg-panel: var(--surface-glass);
+  --border-panel: var(--line);
+  --shadow-panel: var(--deck-shadow);
+  --bg-card: var(--surface-raised);
+  --border-card: var(--line);
+  --bg-symbol-bar: var(--surface-inset);
+  --border-symbol-bar: var(--line);
+  --color-symbol-btn: var(--ink-muted);
+  --hover-symbol-btn: var(--surface-hover);
+  --bg-option-row: transparent;
+  --hover-option-row: var(--surface-hover);
+  --selected-option-row: var(--ui-accent-soft);
+  --border-option-row: var(--line-strong);
+  --table-heading-bg: var(--surface-inset);
+  --table-border: var(--line);
+  --table-td-border: var(--line);
+  --table-th-color: var(--ink-muted);
+  --table-td-color: var(--ink);
+  --toast-bg: var(--surface-raised);
+  --toast-text: var(--ink-title);
+  --sidebar-bg: var(--surface-shell);
+  --sidebar-text: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-eyebrow: var(--ink-muted);
+  --sidebar-nav-color: var(--ink-muted);
+  --sidebar-nav-hover: var(--surface-hover);
+  --sidebar-nav-active-bg: var(--ui-accent-soft);
+  --sidebar-nav-active-text: var(--ui-accent);
+  --sidebar-heading: var(--ink-title);
+  --sidebar-label: var(--ink-muted);
+  --sidebar-input-bg: var(--surface-inset);
+  --sidebar-input-border: var(--line-strong);
+  --sidebar-input-text: var(--ink-title);
+  --sidebar-strong: var(--ui-accent);
+  --sidebar-divider: var(--line);
+  --sidebar-bottom-border: var(--line);
+  --sidebar-bottom-text: var(--ink-muted);
+  --sidebar-badge-bg: var(--ui-accent-soft);
+  --sidebar-badge-border: var(--line);
+  --sidebar-badge-text: var(--ui-accent);
+  --sidebar-scroll-track: var(--surface-shell);
+  --sidebar-scroll-thumb: var(--line-strong);
+  --sidebar-scroll-hover: var(--ui-accent);
+  --brand-text: var(--ink-title);
+  --brand-sub: var(--ink-muted);
+  --sidebar-close-hover: var(--surface-hover);
+}
+
+:root body { min-width: 320px; }
+:root .sidebar-inner { padding: 24px 18px 32px; }
+:root .sidebar.collapsed { visibility: hidden; }
+:root .brand-icon { background: var(--ui-accent); color: var(--ui-on-accent); box-shadow: var(--accent-shadow); border-radius: 12px; }
+:root .brand small { color: var(--ink-muted); font-size: 10px; letter-spacing: 1.5px; }
+:root .section-eyebrow { font-size: 12px; letter-spacing: 1.5px; }
+:root .nav-item { border-radius: 10px; min-height: 44px; font-size: 14px; }
+:root .nav-item.active { box-shadow: inset 3px 0 var(--ui-accent); }
+:root .nav-item.active:hover { background: var(--ui-accent-soft); }
+:root .count, :root .nav-item.active .count { background: var(--ui-accent-soft); color: var(--ui-accent); }
+:root .setup-title { font-size: 15px; margin-top: 26px; }
+:root :is(.route-inputs label, .field-label, .range-heading, .compact-field) { font-size: 14px; }
+:root .sidebar select { min-height: 42px; font-size: 14px; border-radius: 9px; }
+:root .compact-field input { min-height: 34px; box-sizing: border-box; font-size: 14px; }
+:root .range-heading strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+:root input[type="range"] { accent-color: var(--ui-accent); height: 6px; margin: 14px 0 20px; }
+:root .route-connector { color: var(--ui-accent); }
+:root .route-connector span { border-color: var(--line-strong); }
+:root .model-settings { background: var(--surface-inset); border-color: var(--line); border-radius: 12px; font-size: 13px; padding: 12px; }
+:root .model-settings summary { min-height: 24px; font-size: 14px; }
+:root :is(.model-settings p, .sidebar-bottom, .sidebar-bottom small) { font-size: 12px; line-height: 1.6; }
+:root .version-badge { border-radius: 6px; font-size: 12px; }
+
+:root .topbar { gap: 12px; background: var(--surface-shell); box-shadow: 0 1px 0 var(--line); }
+:root .topbar-panel-symbols { gap: 6px; padding: 4px; border: 1px solid var(--line); background: var(--surface-inset); border-radius: 13px; }
+:root .symbol-btn { width: 34px; height: 34px; background: transparent; color: var(--ink-muted); border-color: transparent; box-shadow: none; border-radius: 9px; }
+:root .symbol-btn:hover { background: var(--surface-hover); color: var(--ui-accent); border-color: var(--line); }
+:root .symbol-btn.active { background: var(--ui-accent); color: var(--ui-on-accent); border-color: var(--ui-accent); box-shadow: var(--accent-shadow); }
+:root .symbol-divider { height: 18px; }
+:root .button { min-height: 38px; font-size: 14px; border-radius: 9px; }
+:root .button-primary { background: var(--ui-accent); color: var(--ui-on-accent); border-color: var(--ui-accent); box-shadow: var(--accent-shadow); }
+:root .button-primary:hover:not(:disabled) { background: var(--ui-accent-hover); color: var(--ui-on-accent); border-color: var(--ui-accent-hover); box-shadow: var(--accent-shadow); }
+:root .button-white, :root .mobile-tab { background: var(--surface-raised); color: var(--ink); border-color: var(--line-strong); box-shadow: none; }
+:root .button-white:hover, :root .mobile-tab:hover { background: var(--surface-hover); color: var(--ink-title); border-color: var(--ui-accent); }
+:root .icon-button { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-raised); color: var(--ink-muted); }
+:root .sidebar-toggle-btn:hover, :root .icon-button:hover { color: var(--ui-accent); border-color: var(--ui-accent); background: var(--surface-hover); }
+:root .panel-close-btn { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; }
+:root .panel-close-btn:hover { color: var(--ui-danger); background: var(--ui-danger-bg); }
+:root :is(button, input, select, summary, a, .svg-pad):focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+:root .sidebar select:focus, :root .compact-field input:focus { border-color: var(--ui-accent); box-shadow: 0 0 0 3px var(--ui-accent-soft); }
+
+/* Consistent floating surfaces, including the fleet and altitude instruments. */
+:root :is(.gis-heading-card, .gis-metrics-bar, .gis-overlay-toolbar, .map-wind-badge, .gis-overlay-fleet-strip, .altitude-panel),
+:root .gis-overlay-right-panel .panel, :root .gis-overlay-bottom-left .panel {
+  background: var(--surface-glass) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: var(--deck-shadow) !important;
+  border-radius: 14px;
+}
+:root .gis-heading-card { padding: 12px 16px; flex-wrap: wrap; }
+:root .gis-heading-info h1 { font-size: 19px; line-height: 1.25; letter-spacing: -.5px; }
+:root .gis-heading-info .overline { font-size: 12px; letter-spacing: 1.2px; }
+:root .gis-status-group { flex-wrap: wrap; }
+:root .gis-metrics-bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 8px; padding: 14px; }
+:root .gis-metrics-bar .metric { padding: 0 4px; }
+:root .gis-metrics-bar .metric-divider { display: none; }
+:root .metric-label { font-size: 11px; letter-spacing: .5px; }
+:root .metric-label svg, :root .flight-strip-mini .flight-progress, :root .empty-results svg { color: var(--ui-accent); }
+:root .metric > div { font-size: 21px; font-weight: 650; letter-spacing: -.6px; line-height: 1.35; }
+:root .metric div small { font-size: 12px; letter-spacing: 0; }
+:root .aircraft-id { background: var(--surface-inset); border-color: var(--line); color: var(--ink-muted); font-size: 12px; }
+:root .gis-overlay-toolbar { padding: 10px 12px; flex-wrap: wrap; gap: 10px; }
+:root .flight-strip-mini { flex-wrap: wrap; }
+:root .flight-strip-mini .endpoint strong { font-size: 14px; }
+:root .flight-strip-mini .endpoint span, :root .flight-strip-mini .flight-progress { font-size: 11px; }
+:root .speed-select-mini { min-height: 36px; font-size: 13px; }
+:root .map-toggle { border-color: var(--line-strong); border-radius: 9px; }
+:root .map-toggle button { width: 34px; height: 34px; background: var(--surface-inset); color: var(--ink-muted); }
+:root .map-toggle button.selected { color: var(--ui-accent); background: var(--ui-accent-soft); }
+:root .panel-heading { padding: 12px 14px; }
+:root .panel-heading h2 { font-size: 15px; letter-spacing: -.2px; }
+:root .panel-subtitle { font-size: 12px; margin-top: 10px; }
+:root .option-list { padding: 6px 8px 12px; }
+:root .option-row { padding: 11px 9px; border-radius: 10px; }
+:root .option-row.selected { box-shadow: inset 3px 0 var(--ui-accent); }
+:root .option-name strong { font-size: 14px; }
+:root .option-name small, :root .option-distance small { font-size: 12px; }
+:root .option-distance { font-size: 14px; }
+:root .option-rank { width: 25px; height: 25px; border-radius: 8px; font-size: 12px; background: var(--ui-accent-soft); color: var(--ui-accent); border: 1px solid var(--line); }
+:root .option-rank.muted { background: var(--surface-inset); color: var(--ink-muted); border-color: var(--line); }
+:root .selected-panel { padding: 16px; }
+:root .pad-detail-title .overline { font-size: 12px; }
+:root .pad-detail-title h2 { font-size: 18px; }
+:root .detail-line, :root .detail-line strong { font-size: 14px; }
+:root .scenario-control > span, :root .scenario-control small { font-size: 12px; line-height: 1.5; }
+:root .scenario-control .button { min-height: 38px; font-size: 14px; }
+:root .small-count, :root .status-pill, :root .pad-state, :root .result-tag.good {
+  color: var(--ui-success); background: var(--ui-success-bg); border: 1px solid color-mix(in srgb, var(--ui-success) 28%, transparent); font-size: 12px; border-radius: 7px; padding: 4px 7px;
+}
+:root .status-pill.amber, :root .chip-divert { color: var(--ui-warning); background: var(--ui-warning-bg); border-color: color-mix(in srgb, var(--ui-warning) 28%, transparent); }
+:root .status-pill.error, :root .pad-state.closed, :root .result-tag.bad, :root .button-danger, :root .scenario-control .button-danger, :root .failure-toast {
+  color: var(--ui-danger); background: var(--ui-danger-bg); border-color: color-mix(in srgb, var(--ui-danger) 32%, transparent);
+}
+:root .button-danger:hover, :root .scenario-control .button-danger:hover { color: var(--ui-danger); background: color-mix(in srgb, var(--ui-danger) 12%, var(--ui-danger-bg)); border-color: var(--ui-danger); }
+:root .event-list { max-height: 125px; padding: 4px 14px 12px; }
+:root .event-row { font-size: 13px; padding: 8px 0; align-items: flex-start; }
+:root .event-row time, :root .secondary { font-size: 12px; }
+:root .event-dot { margin-top: 6px; background: var(--ink-muted); }
+:root .event-dot.success { background: var(--ui-success); }
+:root .event-dot.warning { background: var(--ui-warning); }
+:root .event-dot.error { background: var(--ui-danger); }
+
+/* Map styling affects tiles and presentation only, never coordinates or motion. */
+:root .map-caption { background: var(--surface-glass); color: var(--ink-muted); border-color: var(--line); border-radius: 9px; font-size: 12px; bottom: 28px; }
+:root .legend-line { background: var(--map-route); }
+:root .legend-dot { background: var(--surface-raised); border-color: var(--ui-success); }
+:root .legend-dot.closed { background: var(--ui-danger); border-color: var(--ui-danger); }
+:root .pad-pin { background: var(--surface-raised); color: var(--ink-title); border-color: var(--ui-success); box-shadow: var(--deck-shadow); }
+:root .pad-pin.selected { background: var(--ui-accent); color: var(--ui-on-accent); border-color: var(--surface-raised); box-shadow: 0 0 0 3px var(--ui-accent), var(--accent-shadow); }
+:root .pad-pin.closed { background: var(--ui-danger-bg); color: var(--ui-danger); border-color: var(--ui-danger); box-shadow: var(--deck-shadow); }
+:root .pad-pin.selected.closed { box-shadow: 0 0 0 3px var(--ui-accent); }
+:root .aircraft-pin { background: var(--surface-inset); color: var(--ui-accent); border-color: var(--ui-accent); box-shadow: var(--deck-shadow); }
+:root .leaflet-tooltip { background: var(--surface-raised); color: var(--ink); border: 1px solid var(--line); border-radius: 9px; box-shadow: var(--deck-shadow); font-size: 13px; padding: 9px 12px; }
+:root .leaflet-tooltip-top::before { border-top-color: var(--surface-raised); }
+:root .leaflet-tooltip-bottom::before { border-bottom-color: var(--surface-raised); }
+:root .leaflet-tooltip-left::before { border-left-color: var(--surface-raised); }
+:root .leaflet-tooltip-right::before { border-right-color: var(--surface-raised); }
+:root .leaflet-control-attribution { background: var(--surface-glass); color: var(--ink-muted); font-size: 10px !important; }
+:root .leaflet-control-attribution a { color: var(--ui-accent); }
+:root .leaflet-control-zoom { background: var(--surface-glass) !important; border-color: var(--line) !important; box-shadow: var(--deck-shadow) !important; }
+:root .leaflet-control-zoom a { color: var(--ink) !important; border-bottom-color: var(--line) !important; }
+:root .leaflet-control-zoom a:hover { background: var(--ui-accent) !important; color: var(--ui-on-accent) !important; }
+:root .leaflet-control-zoom a.leaflet-disabled { color: var(--ink-muted) !important; opacity: .5; }
+:root .network-map .map-note { font-size: 12px; }
+:root .pnr-pin { display: flex; gap: 4px; align-items: center; padding: 3px 6px; border-radius: 6px; background: var(--ui-warning-bg); color: var(--ui-warning); border: 1px solid currentColor; font-size: 11px; font-weight: 700; }
+:root .pnr-pin.past { background: var(--ui-danger-bg); color: var(--ui-danger); }
+:root .pnr-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+:root .fleet-marker { position: relative; }
+:root .fleet-badge { position: absolute; bottom: -5px; right: -5px; border: 2px solid var(--surface-raised); color: #101f3a; border-radius: 5px; font-size: 10px; line-height: 16px; min-width: 16px; text-align: center; }
+
+/* Keep instruments in their own tracks instead of placing panels over controls. */
+:root .workspace { container: deck / inline-size; }
+:root .page-content { min-height: 0; }
+:root .gis-workspace { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto auto; align-content: start; gap: 12px; padding: 16px; box-sizing: border-box; overflow-y: auto; }
+:root .gis-workspace:has(.gis-overlay-right-panel) { grid-template-columns: minmax(0, 1fr) 320px; }
+:root .gis-map-canvas { position: absolute; inset: 0; height: 100%; }
+:root :is(.gis-overlay-top-left, .gis-overlay-toolbar, .gis-overlay-bottom-left, .gis-overlay-altitude, .gis-overlay-fleet-strip, .failure-toast) { position: relative; inset: auto; margin: 0; width: 100%; max-width: 540px; min-width: 0; box-sizing: border-box; z-index: 1000; grid-column: 1; }
+:root .gis-overlay-top-left { grid-row: 1; }
+:root .gis-overlay-toolbar { grid-row: 2; align-self: start; }
+:root .gis-overlay-altitude { grid-row: 3; align-self: end; }
+:root .gis-overlay-bottom-left { grid-row: 4; }
+:root .gis-overlay-fleet-strip { grid-row: 5; padding: 12px; }
+:root .failure-toast { grid-row: 6; font-size: 14px; }
+:root .gis-overlay-right-panel { position: relative; inset: auto; grid-column: 2; grid-row: 1 / -1; min-height: 0; width: 320px; max-height: none; z-index: 1000; }
+:root .gis-workspace:has(.gis-overlay-right-panel) .leaflet-top.leaflet-right { right: 352px !important; }
+:root .gis-workspace:has(.gis-overlay-right-panel) .map-caption { right: 352px; }
+:root .altitude-panel { overflow: hidden; }
+:root .altitude-body { padding: 12px 14px; }
+:root .altitude-svg { display: block; width: 100%; height: auto; }
+:root .altitude-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 12px; }
+:root .altitude-footer small, :root .altitude-footer strong { display: block; }
+:root .altitude-footer small { color: var(--ink-muted); font-size: 11px; letter-spacing: .4px; }
+:root .altitude-footer strong { margin-top: 3px; }
+:root .fleet-strip-label { display: flex; gap: 6px; align-items: center; color: var(--ink-muted); font-size: 12px; margin-bottom: 8px; }
+:root .fleet-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+:root .fleet-chip { display: flex; align-items: center; gap: 6px; padding: 8px; min-height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); color: var(--ink); }
+:root .fleet-chip:hover, :root .fleet-chip.active { background: var(--ui-accent-soft); color: var(--ink-title); }
+:root .fleet-chip.active { box-shadow: inset 0 -2px var(--ui-accent); }
+:root .fleet-dot { width: 7px; height: 7px; border-radius: 50%; }
+:root .chip-divert { padding: 2px 4px; border-radius: 4px; }
+:root .segmented-toggle { display: flex; padding: 3px; gap: 3px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-inset); }
+:root .segmented-toggle button { flex: 1; border: 0; border-radius: 6px; padding: 7px; color: var(--ink-muted); background: transparent; font-size: 13px; }
+:root .segmented-toggle button.active { color: var(--ui-on-accent); background: var(--ui-accent); }
+
+:root .results-wrapper { box-sizing: border-box; background: radial-gradient(ellipse at top left, var(--ui-accent-soft), transparent 65%), var(--surface-base); }
+:root .results-panel { border-radius: 16px; box-shadow: var(--deck-shadow); }
+:root .results-heading { flex-wrap: wrap; padding: 24px; }
+:root .results-heading h2 { font-size: 24px; letter-spacing: -.7px; }
+:root .results-heading p, :root .empty-results p { font-size: 14px; line-height: 1.7; }
+:root table { font-size: 14px; }
+:root th { font-size: 12px; }
+:root table tr:hover td { background: var(--surface-hover); }
+:root .results-note { font-size: 12px; }
+:root .toast { border-color: var(--line); border-radius: 12px; box-shadow: var(--deck-shadow); font-size: 14px; }
+:root .toast > svg { color: var(--ui-success); }
+:root .toast button { color: var(--ink-muted); min-width: 28px; min-height: 28px; }
+:root .toast button:hover { color: var(--ink-title); }
+
+/* Short entrance and tactile feedback animations; no looping distractions. */
+@keyframes deck-reveal { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+@keyframes deck-row { from { opacity: 0; translate: -5px 0; } to { opacity: 1; translate: 0 0; } }
+@keyframes deck-icon { from { opacity: .3; rotate: -35deg; scale: .75; } to { opacity: 1; rotate: 0deg; scale: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  :root :is(.gis-overlay-top-left, .gis-overlay-toolbar, .gis-overlay-right-panel, .gis-overlay-bottom-left, .gis-overlay-altitude, .gis-overlay-fleet-strip, .results-panel, .toast, .failure-toast) { animation: deck-reveal 360ms var(--motion-ease) both; }
+  :root .option-row, :root .event-row { animation: deck-row 280ms var(--motion-ease) both; }
+  :root .option-row:nth-child(2) { animation-delay: 25ms; }
+  :root .option-row:nth-child(3) { animation-delay: 50ms; }
+  :root .option-row:nth-child(n+4) { animation-delay: 75ms; }
+  :root .symbol-btn svg { animation: deck-icon 300ms var(--motion-ease); }
+  :root :is(.button, .symbol-btn, .icon-button, .nav-item, .fleet-chip, .option-row) { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, translate 180ms var(--motion-ease); }
+  :root :is(.button, .symbol-btn, .icon-button):hover:not(:disabled) { translate: 0 -1px; }
+  :root :is(.button, .symbol-btn, .icon-button):active:not(:disabled) { translate: 0 1px; }
+  :root .brand-icon { transition: rotate 250ms var(--motion-ease); }
+  :root .brand:hover .brand-icon { rotate: -7deg; }
+  :root :is(.sidebar, .topbar, .results-wrapper) { transition: background-color 220ms ease, border-color 220ms ease; }
+  :root .sidebar { transition: width 280ms var(--motion-ease), opacity 180ms ease, visibility 280ms, background-color 220ms ease; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root *, :root *::before, :root *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+@container deck (max-width: 1000px) {
+  :root .breadcrumb { display: none; }
+  :root .topbar { padding: 0 12px; gap: 8px; }
+  :root .gis-workspace:has(.gis-overlay-right-panel) { grid-template-columns: minmax(0, 1fr) 290px; }
+  :root .gis-overlay-right-panel { width: 290px; }
+  :root .gis-workspace:has(.gis-overlay-right-panel) .leaflet-top.leaflet-right { right: 322px !important; }
+  :root .gis-workspace:has(.gis-overlay-right-panel) .map-caption { right: 322px; }
+  :root .gis-metrics-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container deck (max-width: 720px) {
+  :root .topbar { flex-wrap: wrap; height: auto; min-height: 56px; padding: 8px 12px; }
+  :root .topbar-panel-symbols { order: 3; width: 100%; box-sizing: border-box; justify-content: space-between; }
+  :root .top-actions { margin-left: auto; }
+  :root .page-content { height: auto; max-height: none; }
+  :root .gis-workspace, :root .gis-workspace:has(.gis-overlay-right-panel) { display: flex; flex-direction: column; padding: 12px; gap: 12px; }
+  :root .gis-map-canvas { position: relative; inset: auto; height: 350px; min-height: 350px; flex-shrink: 0; border-radius: 14px; overflow: hidden; }
+  :root :is(.gis-overlay-top-left, .gis-overlay-toolbar, .gis-overlay-bottom-left, .gis-overlay-altitude, .gis-overlay-fleet-strip, .failure-toast) { flex-shrink: 0; width: 100%; max-width: none; }
+  :root .gis-overlay-right-panel { width: 100%; flex-shrink: 0; max-height: none; }
+  :root .options-panel { flex: none; max-height: 380px; }
+  :root .gis-workspace:has(.gis-overlay-right-panel) .leaflet-top.leaflet-right { right: 12px !important; }
+  :root .gis-workspace:has(.gis-overlay-right-panel) .map-caption, :root .map-caption { right: 8px; font-size: 11px; gap: 4px; padding: 5px 7px; }
+  :root .results-wrapper { padding: 12px; }
+  :root .results-heading { padding: 18px; }
+  :root .toolbar-divider { display: none; }
+}
+@media (max-width: 768px) {
+  :root .app-shell { flex-direction: row; }
+  :root .workspace { height: 100svh; max-height: 100svh; }
+  :root .sidebar { position: absolute; top: 0; left: 0; width: min(278px, calc(100vw - 44px)); height: 100svh; max-height: 100svh; box-shadow: 12px 0 36px #02061130; }
+  :root .sidebar.collapsed { width: 0; }
+}
