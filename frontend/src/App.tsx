@@ -181,97 +181,152 @@ export default function App(){
     <aside className={`sidebar ${sidebarOpen ? '' : 'collapsed'}`} aria-expanded={sidebarOpen}>
       <div className="sidebar-inner">
         <div className="brand-header"><a href="#" className="brand" aria-label="GaganSetu home" onClick={e=>{e.preventDefault();setTab('mission');if(isMobile)setSidebarOpen(false)}}><span className="brand-icon"><Route size={23}/></span><span>GaganSetu<small>AIR MOBILITY LAB</small></span></a><button className="sidebar-close-btn" title="Collapse control bar" aria-label="Collapse control bar" onClick={()=>setSidebarOpen(false)}><PanelLeftClose size={18}/></button></div>
-        <div className="sidebar-divider"/><div className="section-eyebrow">WORKSPACE</div>
-        <nav aria-label="Workspace"><button className={tab==='mission'?'nav-item active':'nav-item'} onClick={()=>{setTab('mission');if(isMobile)setSidebarOpen(false)}}><Navigation size={18}/> Flight simulation <ChevronRight size={15}/></button><button className={tab==='results'?'nav-item active':'nav-item'} onClick={()=>{setTab('results');if(isMobile)setSidebarOpen(false)}}><FlaskConical size={18}/> Scenario results {trials.length>0&&<span className="count">{trials.length}</span>}</button></nav>
+
+        {/* SECTION BOX 1: WORKSPACE NAVIGATION */}
+        <div className="sidebar-box">
+          <div className="sidebar-box-header">
+            <span className="sidebar-box-title"><Navigation size={13} className="sidebar-box-icon"/> WORKSPACE</span>
+          </div>
+          <nav aria-label="Workspace">
+            <button className={tab==='mission'?'nav-item active':'nav-item'} onClick={()=>{setTab('mission');if(isMobile)setSidebarOpen(false)}}>
+              <Navigation size={17}/> Flight simulation <ChevronRight size={15}/>
+            </button>
+            <button className={tab==='results'?'nav-item active':'nav-item'} onClick={()=>{setTab('results');if(isMobile)setSidebarOpen(false)}}>
+              <FlaskConical size={17}/> Scenario results {trials.length>0&&<span className="count">{trials.length}</span>}
+            </button>
+          </nav>
+        </div>
         
-        <div className="setup-title"><span>Mission setup</span><SlidersHorizontal size={16}/></div>
-        <div className="range-heading"><span>Fleet Operations</span><strong>{config.fleetMode ? '3 eVTOLs' : 'GS-01'}</strong></div>
-        <div className="segmented-toggle">
-          <button type="button" className={!config.fleetMode ? 'active' : ''} disabled={locked} onClick={() => configure({ fleetMode: false })}>Single (GS-01)</button>
-          <button type="button" className={config.fleetMode ? 'active' : ''} disabled={locked} onClick={() => configure({ fleetMode: true })}>Fleet (3 eVTOLs)</button>
+        {/* SECTION BOX 2: FLEET & ROUTE SETUP */}
+        <div className="sidebar-box">
+          <div className="sidebar-box-header">
+            <span className="sidebar-box-title"><Route size={13} className="sidebar-box-icon"/> FLEET & CORRIDOR</span>
+          </div>
+          <div className="range-heading">
+            <span>Fleet Operations</span>
+            <strong>{config.fleetMode ? '3 eVTOLs' : 'GS-01'}</strong>
+          </div>
+          <div className="segmented-toggle">
+            <button type="button" className={!config.fleetMode ? 'active' : ''} disabled={locked} onClick={() => configure({ fleetMode: false })}>Single (GS-01)</button>
+            <button type="button" className={config.fleetMode ? 'active' : ''} disabled={locked} onClick={() => configure({ fleetMode: true })}>Fleet (3 eVTOLs)</button>
+          </div>
+
+          <div className="route-inputs" style={{ marginTop: '12px' }}>
+            <label htmlFor="origin">Departure pad</label>
+            <select id="origin" value={config.origin} disabled={locked} onChange={e=>configure({origin:e.target.value})}>
+              {PADS.map(p=><option key={p.id} value={p.id}>{p.id} · {p.name}</option>)}
+            </select>
+            <div className="route-connector"><span/><ArrowRight size={15}/></div>
+            <label htmlFor="destination">Destination pad</label>
+            <select id="destination" value={config.destination} disabled={locked} onChange={e=>configure({destination:e.target.value})}>
+              {PADS.map(p=><option key={p.id} value={p.id}>{p.id} · {p.name}</option>)}
+            </select>
+          </div>
         </div>
 
-        <div className="route-inputs" style={{ marginTop: '12px' }}>
-          <label htmlFor="origin">Departure pad</label>
-          <select id="origin" value={config.origin} disabled={locked} onChange={e=>configure({origin:e.target.value})}>{PADS.map(p=><option key={p.id} value={p.id}>{p.id} · {p.name}</option>)}</select>
-          <div className="route-connector"><span/><ArrowRight size={15}/></div>
-          <label htmlFor="destination">Destination pad</label>
-          <select id="destination" value={config.destination} disabled={locked} onChange={e=>configure({destination:e.target.value})}>{PADS.map(p=><option key={p.id} value={p.id}>{p.id} · {p.name}</option>)}</select>
+        {/* SECTION BOX 3: MISSION & FLIGHT ENVIRONMENT PARAMETERS */}
+        <div className="sidebar-box">
+          <div className="sidebar-box-header">
+            <span className="sidebar-box-title"><SlidersHorizontal size={13} className="sidebar-box-icon"/> MISSION PARAMETERS</span>
+          </div>
+
+          <label className="field-label" htmlFor="scenario" style={{ marginTop: '2px' }}>Scenario</label>
+          <select id="scenario" value={config.scenario} disabled={locked} onChange={e=>configure({scenario:e.target.value as Config['scenario']})}>
+            <option value="closure">Destination closes in flight</option>
+            <option value="normal">Normal flight</option>
+          </select>
+
+          <div className="range-heading"><label htmlFor="battery">Starting battery</label><strong>{config.initialBattery}%</strong></div>
+          <input id="battery" type="range" min="20" max="100" step="5" value={config.initialBattery} disabled={locked} onChange={e=>configure({initialBattery:Number(e.target.value)})}/>
+
+          <div className="range-heading"><label htmlFor="delay">Notification delay</label><strong>{config.notificationDelay}s</strong></div>
+          <input id="delay" type="range" min="0" max="120" step="5" value={config.notificationDelay} disabled={locked} onChange={e=>configure({notificationDelay:Number(e.target.value)})}/>
+
+          {config.scenario==='closure'&&<div className="compact-field"><label htmlFor="closure">Close destination at</label><div><input id="closure" type="number" min="10" max="1800" step="5" value={config.closureAt} disabled={locked} onChange={e=>configure({closureAt:Math.min(1800,Math.max(10,Number(e.target.value)||10))})}/><span>sec</span></div></div>}
+
+          <div className="range-heading"><label htmlFor="wind">Wind speed</label><strong>{config.windSpeedKmh} km/h</strong></div>
+          <input id="wind" type="range" min="0" max="40" step="5" value={config.windSpeedKmh} disabled={locked} onChange={e => configure({ windSpeedKmh: Number(e.target.value) })} />
+
+          <label className="field-label" htmlFor="windDir">Wind direction (blowing from)</label>
+          <select id="windDir" value={config.windDirectionDeg} disabled={locked} onChange={e => configure({ windDirectionDeg: Number(e.target.value) })}>
+            <option value={0}>North (0° - Southerly flow)</option>
+            <option value={90}>East (90° - Westerly flow)</option>
+            <option value={180}>South (180° - Northerly flow)</option>
+            <option value={270}>West (270° - Easterly flow)</option>
+          </select>
         </div>
 
-        <label className="field-label" htmlFor="scenario">Scenario</label>
-        <select id="scenario" value={config.scenario} disabled={locked} onChange={e=>configure({scenario:e.target.value as Config['scenario']})}>
-          <option value="closure">Destination closes in flight</option>
-          <option value="normal">Normal flight</option>
-        </select>
-
-        <div className="range-heading"><label htmlFor="battery">Starting battery</label><strong>{config.initialBattery}%</strong></div>
-        <input id="battery" type="range" min="20" max="100" step="5" value={config.initialBattery} disabled={locked} onChange={e=>configure({initialBattery:Number(e.target.value)})}/>
-
-        <div className="range-heading"><label htmlFor="delay">Notification delay</label><strong>{config.notificationDelay}s</strong></div>
-        <input id="delay" type="range" min="0" max="120" step="5" value={config.notificationDelay} disabled={locked} onChange={e=>configure({notificationDelay:Number(e.target.value)})}/>
-
-        {config.scenario==='closure'&&<div className="compact-field"><label htmlFor="closure">Close destination at</label><div><input id="closure" type="number" min="10" max="1800" step="5" value={config.closureAt} disabled={locked} onChange={e=>configure({closureAt:Math.min(1800,Math.max(10,Number(e.target.value)||10))})}/><span>sec</span></div></div>}
-
-        <div className="range-heading"><label htmlFor="wind">Wind speed</label><strong>{config.windSpeedKmh} km/h</strong></div>
-        <input id="wind" type="range" min="0" max="40" step="5" value={config.windSpeedKmh} disabled={locked} onChange={e => configure({ windSpeedKmh: Number(e.target.value) })} />
-
-        <label className="field-label" htmlFor="windDir">Wind direction (blowing from)</label>
-        <select id="windDir" value={config.windDirectionDeg} disabled={locked} onChange={e => configure({ windDirectionDeg: Number(e.target.value) })}>
-          <option value={0}>North (0° - Southerly flow)</option>
-          <option value={90}>East (90° - Westerly flow)</option>
-          <option value={180}>South (180° - Northerly flow)</option>
-          <option value={270}>West (270° - Easterly flow)</option>
-        </select>
-
-        <details className="model-settings"><summary>Aircraft model <CircleHelp size={14}/></summary><dl><div><dt>Capacity</dt><dd>38 kWh</dd></div><div><dt>Cruise speed</dt><dd>120 km/h</dd></div><div><dt>Cruise energy</dt><dd>1 kWh/km</dd></div><div><dt>Take-off / landing</dt><dd>1.5 / 1.5 kWh</dd></div><div><dt>Landing reserve</dt><dd>5 kWh</dd></div></dl><p>Illustrative parameters. Fixed speed, instantaneous turns and bidirectional corridors.</p></details>
-        <div className="sidebar-bottom"><span className="version-badge">v0.2</span><span>Software simulation<small>Hypothetical operational data</small></span></div>
+        {/* SECTION BOX 4: AIRCRAFT MODEL SPECIFICATIONS */}
+        <div className="sidebar-box">
+          <details className="model-settings" open>
+            <summary>
+              <span className="model-settings-title"><Mountain size={13} className="sidebar-box-icon"/> Aircraft Specifications</span>
+              <CircleHelp size={14}/>
+            </summary>
+            <dl>
+              <div><dt>Capacity</dt><dd>38 kWh</dd></div>
+              <div><dt>Cruise speed</dt><dd>120 km/h</dd></div>
+              <div><dt>Cruise energy</dt><dd>1 kWh/km</dd></div>
+              <div><dt>Take-off / landing</dt><dd>1.5 / 1.5 kWh</dd></div>
+              <div><dt>Landing reserve</dt><dd>5 kWh</dd></div>
+            </dl>
+            <p>Illustrative parameters. Fixed speed, instantaneous turns and bidirectional corridors.</p>
+          </details>
+        </div>
 
         {/* MOBILE HUD CONTROLS & QUICK ACTIONS (Moved from Header for Mobile Screens) */}
         <div className="sidebar-mobile-controls">
-          <div className="sidebar-divider"/>
-          <div className="section-eyebrow">FLIGHT DECK OVERLAYS</div>
-          <div className="sidebar-hud-grid">
-            <button type="button" className={`hud-pill-btn ${showMetrics ? 'active' : ''}`} onClick={() => { toggleOverlay('metrics'); if(isMobile) setSidebarOpen(false); }}>
-              <Activity size={15}/> <span>Metrics HUD</span>
-            </button>
-            <button type="button" className={`hud-pill-btn ${showControls ? 'active' : ''}`} onClick={() => { toggleOverlay('controls'); if(isMobile) setSidebarOpen(false); }}>
-              <Play size={15}/> <span>Playback</span>
-            </button>
-            <button type="button" className={`hud-pill-btn ${showAltitude ? 'active' : ''}`} onClick={() => { toggleOverlay('altitude'); if(isMobile) setSidebarOpen(false); }}>
-              <Mountain size={15}/> <span>Altitude 2.5D</span>
-            </button>
-            <button type="button" className={`hud-pill-btn ${showOptions ? 'active' : ''}`} onClick={() => { toggleOverlay('options'); if(isMobile) setSidebarOpen(false); }}>
-              <SlidersHorizontal size={15}/> <span>Landing Options</span>
-            </button>
-            <button type="button" className={`hud-pill-btn ${showEvents ? 'active' : ''}`} onClick={() => { toggleOverlay('events'); if(isMobile) setSidebarOpen(false); }}>
-              <Radio size={15}/> <span>Events Log</span>
-            </button>
-            <button type="button" className="hud-pill-btn theme-pill-btn" onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}>
-              {theme === 'dark' ? <Sun size={15}/> : <Moon size={15}/>}
-              <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
-            </button>
+          <div className="sidebar-box">
+            <div className="sidebar-box-header">
+              <span className="sidebar-box-title"><Activity size={13} className="sidebar-box-icon"/> FLIGHT DECK OVERLAYS</span>
+            </div>
+            <div className="sidebar-hud-grid">
+              <button type="button" className={`hud-pill-btn ${showMetrics ? 'active' : ''}`} onClick={() => { toggleOverlay('metrics'); if(isMobile) setSidebarOpen(false); }}>
+                <Activity size={15}/> <span>Metrics HUD</span>
+              </button>
+              <button type="button" className={`hud-pill-btn ${showControls ? 'active' : ''}`} onClick={() => { toggleOverlay('controls'); if(isMobile) setSidebarOpen(false); }}>
+                <Play size={15}/> <span>Playback</span>
+              </button>
+              <button type="button" className={`hud-pill-btn ${showAltitude ? 'active' : ''}`} onClick={() => { toggleOverlay('altitude'); if(isMobile) setSidebarOpen(false); }}>
+                <Mountain size={15}/> <span>Altitude 2.5D</span>
+              </button>
+              <button type="button" className={`hud-pill-btn ${showOptions ? 'active' : ''}`} onClick={() => { toggleOverlay('options'); if(isMobile) setSidebarOpen(false); }}>
+                <SlidersHorizontal size={15}/> <span>Landing Options</span>
+              </button>
+              <button type="button" className={`hud-pill-btn ${showEvents ? 'active' : ''}`} onClick={() => { toggleOverlay('events'); if(isMobile) setSidebarOpen(false); }}>
+                <Radio size={15}/> <span>Events Log</span>
+              </button>
+              <button type="button" className="hud-pill-btn theme-pill-btn" onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}>
+                {theme === 'dark' ? <Sun size={15}/> : <Moon size={15}/>}
+                <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
+              </button>
+            </div>
           </div>
 
-          <div className="sidebar-divider"/>
-          <div className="section-eyebrow">CLOUD ARCHIVE & DATA</div>
-          <div className="sidebar-cloud-card" title={cloudDb?.message || 'Connecting to backend...'}>
-            <Cloud size={16} className={cloudDb?.status === 'connected' ? 'cloud-icon-active' : 'cloud-icon-muted'} />
-            <div className="sidebar-cloud-meta">
-              <strong>MongoDB Atlas</strong>
-              <small>{cloudDb?.status === 'connected' ? 'Cluster Online' : cloudDb?.status === 'unconfigured' ? 'Setup Needed' : 'Offline'}</small>
+          <div className="sidebar-box">
+            <div className="sidebar-box-header">
+              <span className="sidebar-box-title"><Database size={13} className="sidebar-box-icon"/> CLOUD ARCHIVE & DATA</span>
             </div>
-            <span className={`cloud-pulse-dot ${cloudDb?.status || 'disconnected'}`} />
-          </div>
-          <div className="sidebar-btn-group">
-            <button type="button" className="button button-primary sidebar-action-btn" onClick={() => { handleSaveToAtlas(); if(isMobile) setSidebarOpen(false); }} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
-              <Cloud size={15}/> <span>{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
-            </button>
-            <button type="button" className="button button-white sidebar-action-btn" onClick={() => { exportRun(); if(isMobile) setSidebarOpen(false); }} title="Export flight data as JSON">
-              <Download size={15}/> <span>Export Run JSON</span>
-            </button>
+            <div className="sidebar-cloud-card" title={cloudDb?.message || 'Connecting to backend...'}>
+              <Cloud size={16} className={cloudDb?.status === 'connected' ? 'cloud-icon-active' : 'cloud-icon-muted'} />
+              <div className="sidebar-cloud-meta">
+                <strong>MongoDB Atlas</strong>
+                <small>{cloudDb?.status === 'connected' ? 'Cluster Online' : cloudDb?.status === 'unconfigured' ? 'Setup Needed' : 'Offline'}</small>
+              </div>
+              <span className={`cloud-pulse-dot ${cloudDb?.status || 'disconnected'}`} />
+            </div>
+            <div className="sidebar-btn-group">
+              <button type="button" className="button button-primary sidebar-action-btn" onClick={() => { handleSaveToAtlas(); if(isMobile) setSidebarOpen(false); }} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
+                <Cloud size={15}/> <span>{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
+              </button>
+              <button type="button" className="button button-white sidebar-action-btn" onClick={() => { exportRun(); if(isMobile) setSidebarOpen(false); }} title="Export flight data as JSON">
+                <Download size={15}/> <span>Export Run JSON</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        <div className="sidebar-bottom"><span className="version-badge">v0.2</span><span>Software simulation<small>Hypothetical operational data</small></span></div>
       </div>
     </aside>
     {sidebarOpen && (
