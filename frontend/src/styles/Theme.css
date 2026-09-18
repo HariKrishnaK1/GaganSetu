@@ -33,12 +33,12 @@
   --accent-shadow: 0 5px 16px #2856cf26;
   --motion-ease: cubic-bezier(.2, .7, .25, 1);
   --sidebar-box-bg: #ffffff;
-  --sidebar-box-border: #5bbfae;
-  --sidebar-box-border-hover: #008b75;
-  --sidebar-box-shadow: 0 1px 4px rgba(0, 139, 117, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
-  --sidebar-box-shadow-hover: 0 3px 12px rgba(0, 139, 117, 0.16);
-  --sidebar-box-header-border: rgba(0, 139, 117, 0.2);
-  --sidebar-box-title-color: #007260;
+  --sidebar-box-border: #60a5fa;
+  --sidebar-box-border-hover: #2563eb;
+  --sidebar-box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --sidebar-box-shadow-hover: 0 3px 12px rgba(37, 99, 235, 0.18);
+  --sidebar-box-header-border: rgba(37, 99, 235, 0.18);
+  --sidebar-box-title-color: #1d4ed8;
 }
 
 :root[data-theme="dark"] {
@@ -73,13 +73,13 @@
   --map-zone-line: #f4cd8b;
   --deck-shadow: 0 14px 36px #02061155, inset 0 1px 0 #ffffff06;
   --accent-shadow: 0 5px 20px #77a9ff20;
-  --sidebar-box-bg: #131c2c;
-  --sidebar-box-border: rgba(45, 212, 191, 0.45);
-  --sidebar-box-border-hover: #2dd4bf;
-  --sidebar-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(45, 212, 191, 0.15);
-  --sidebar-box-shadow-hover: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(45, 212, 191, 0.35);
-  --sidebar-box-header-border: rgba(45, 212, 191, 0.22);
-  --sidebar-box-title-color: #2dd4bf;
+  --sidebar-box-bg: #111a28;
+  --sidebar-box-border: rgba(96, 165, 250, 0.45);
+  --sidebar-box-border-hover: #60a5fa;
+  --sidebar-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(96, 165, 250, 0.15);
+  --sidebar-box-shadow-hover: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(96, 165, 250, 0.35);
+  --sidebar-box-header-border: rgba(96, 165, 250, 0.22);
+  --sidebar-box-title-color: #93c5fd;
 }
 
 /* Map existing component tokens to the same palette in both themes. */
