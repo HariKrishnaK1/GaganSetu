@@ -325,34 +325,3 @@
   :root *, :root *::before, :root *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
-@container deck (max-width: 1000px) {
-  :root .breadcrumb { display: none; }
-  :root .topbar { padding: 0 12px; gap: 8px; }
-  :root .gis-workspace:has(.gis-overlay-right-panel) { grid-template-columns: minmax(0, 1fr) 290px; }
-  :root .gis-overlay-right-panel { width: 290px; }
-  :root .gis-workspace:has(.gis-overlay-right-panel) .leaflet-top.leaflet-right { right: 322px !important; }
-  :root .gis-workspace:has(.gis-overlay-right-panel) .map-caption { right: 322px; }
-  :root .gis-metrics-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@container deck (max-width: 720px) {
-  :root .topbar { flex-wrap: wrap; height: auto; min-height: 56px; padding: 8px 12px; }
-  :root .topbar-panel-symbols { order: 3; width: 100%; box-sizing: border-box; justify-content: space-between; }
-  :root .top-actions { margin-left: auto; }
-  :root .page-content { height: auto; max-height: none; }
-  :root .gis-workspace, :root .gis-workspace:has(.gis-overlay-right-panel) { display: flex; flex-direction: column; padding: 12px; gap: 12px; }
-  :root .gis-map-canvas { position: relative; inset: auto; height: 350px; min-height: 350px; flex-shrink: 0; border-radius: 14px; overflow: hidden; }
-  :root :is(.gis-overlay-top-left, .gis-overlay-toolbar, .gis-overlay-bottom-left, .gis-overlay-altitude, .gis-overlay-fleet-strip, .failure-toast) { flex-shrink: 0; width: 100%; max-width: none; }
-  :root .gis-overlay-right-panel { width: 100%; flex-shrink: 0; max-height: none; }
-  :root .options-panel { flex: none; max-height: 380px; }
-  :root .gis-workspace:has(.gis-overlay-right-panel) .leaflet-top.leaflet-right { right: 12px !important; }
-  :root .gis-workspace:has(.gis-overlay-right-panel) .map-caption, :root .map-caption { right: 8px; font-size: 11px; gap: 4px; padding: 5px 7px; }
-  :root .results-wrapper { padding: 12px; }
-  :root .results-heading { padding: 18px; }
-  :root .toolbar-divider { display: none; }
-}
-@media (max-width: 768px) {
-  :root .app-shell { flex-direction: row; }
-  :root .workspace { height: 100svh; max-height: 100svh; }
-  :root .sidebar { position: absolute; top: 0; left: 0; width: min(278px, calc(100vw - 44px)); height: 100svh; max-height: 100svh; box-shadow: 12px 0 36px #02061130; }
-  :root .sidebar.collapsed { width: 0; }
-}

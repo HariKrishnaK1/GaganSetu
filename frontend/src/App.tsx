@@ -22,7 +22,8 @@ export default function App(){
   const [selected,setSelected]=useState(DEFAULT_CONFIG.destination)
   const [schematic,setSchematic]=useState(false)
   const [tab,setTab]=useState<'mission'|'results'>('mission')
-  const [sidebarOpen,setSidebarOpen]=useState(true)
+  const [isMobile,setIsMobile]=useState(()=>typeof window !== 'undefined' ? window.innerWidth <= 768 : false)
+  const [sidebarOpen,setSidebarOpen]=useState(()=>typeof window !== 'undefined' ? window.innerWidth > 768 : true)
   const [showMetrics,setShowMetrics]=useState(false)
   const [showControls,setShowControls]=useState(false)
   const [showOptions,setShowOptions]=useState(false)
@@ -48,6 +49,44 @@ export default function App(){
   const locked=active
   const selectedPad=padById(selected),observed=state.observations[selected]
   const selectedCandidate=alternatives(state,true).find(p=>p.id===selected)!
+
+  useEffect(()=>{
+    const handleResize=()=>{
+      const mobile=window.innerWidth <= 768
+      setIsMobile(mobile)
+    }
+    window.addEventListener('resize',handleResize)
+    return ()=>window.removeEventListener('resize',handleResize)
+  },[])
+
+  const toggleOverlay = (panel: 'metrics' | 'controls' | 'altitude' | 'options' | 'events') => {
+    if (isMobile) {
+      if (panel === 'metrics') setShowMetrics(prev => !prev)
+      else if (panel === 'controls') setShowControls(prev => !prev)
+      else if (panel === 'altitude') {
+        setShowAltitude(prev => {
+          if (!prev) { setShowOptions(false); setShowEvents(false); }
+          return !prev
+        })
+      } else if (panel === 'options') {
+        setShowOptions(prev => {
+          if (!prev) { setShowAltitude(false); setShowEvents(false); }
+          return !prev
+        })
+      } else if (panel === 'events') {
+        setShowEvents(prev => {
+          if (!prev) { setShowAltitude(false); setShowOptions(false); }
+          return !prev
+        })
+      }
+    } else {
+      if (panel === 'metrics') setShowMetrics(prev => !prev)
+      if (panel === 'controls') setShowControls(prev => !prev)
+      if (panel === 'altitude') setShowAltitude(prev => !prev)
+      if (panel === 'options') setShowOptions(prev => !prev)
+      if (panel === 'events') setShowEvents(prev => !prev)
+    }
+  }
 
   const refreshCloudStatus=()=>{
     void fetchHealth().then(h=>{
@@ -101,6 +140,7 @@ export default function App(){
   function reset(){setRunning(false);setState(createSimulation(config));setNotice('Scenario reset. All hypothetical pads start open.')}
   function play(){
     if(running){setRunning(false);return}
+    if(isMobile && sidebarOpen) setSidebarOpen(false)
     if(state.status==='ready'){setState(startSimulation(state));setRunning(true)}
     else if(active)setRunning(true)
   }
@@ -140,9 +180,9 @@ export default function App(){
   return <div className={`app-shell ${sidebarOpen ? '' : 'sidebar-closed'}`}>
     <aside className={`sidebar ${sidebarOpen ? '' : 'collapsed'}`} aria-expanded={sidebarOpen}>
       <div className="sidebar-inner">
-        <div className="brand-header"><a href="#" className="brand" aria-label="GaganSetu home" onClick={e=>{e.preventDefault();setTab('mission')}}><span className="brand-icon"><Route size={23}/></span><span>GaganSetu<small>AIR MOBILITY LAB</small></span></a><button className="sidebar-close-btn" title="Collapse control bar" aria-label="Collapse control bar" onClick={()=>setSidebarOpen(false)}><PanelLeftClose size={18}/></button></div>
+        <div className="brand-header"><a href="#" className="brand" aria-label="GaganSetu home" onClick={e=>{e.preventDefault();setTab('mission');if(isMobile)setSidebarOpen(false)}}><span className="brand-icon"><Route size={23}/></span><span>GaganSetu<small>AIR MOBILITY LAB</small></span></a><button className="sidebar-close-btn" title="Collapse control bar" aria-label="Collapse control bar" onClick={()=>setSidebarOpen(false)}><PanelLeftClose size={18}/></button></div>
         <div className="sidebar-divider"/><div className="section-eyebrow">WORKSPACE</div>
-        <nav aria-label="Workspace"><button className={tab==='mission'?'nav-item active':'nav-item'} onClick={()=>setTab('mission')}><Navigation size={18}/> Flight simulation <ChevronRight size={15}/></button><button className={tab==='results'?'nav-item active':'nav-item'} onClick={()=>setTab('results')}><FlaskConical size={18}/> Scenario results {trials.length>0&&<span className="count">{trials.length}</span>}</button></nav>
+        <nav aria-label="Workspace"><button className={tab==='mission'?'nav-item active':'nav-item'} onClick={()=>{setTab('mission');if(isMobile)setSidebarOpen(false)}}><Navigation size={18}/> Flight simulation <ChevronRight size={15}/></button><button className={tab==='results'?'nav-item active':'nav-item'} onClick={()=>{setTab('results');if(isMobile)setSidebarOpen(false)}}><FlaskConical size={18}/> Scenario results {trials.length>0&&<span className="count">{trials.length}</span>}</button></nav>
         
         <div className="setup-title"><span>Mission setup</span><SlidersHorizontal size={16}/></div>
         <div className="range-heading"><span>Fleet Operations</span><strong>{config.fleetMode ? '3 eVTOLs' : 'GS-01'}</strong></div>
@@ -188,30 +228,33 @@ export default function App(){
         <div className="sidebar-bottom"><span className="version-badge">v0.2</span><span>Software simulation<small>Hypothetical operational data</small></span></div>
       </div>
     </aside>
+    {sidebarOpen && (
+      <div className="sidebar-backdrop" aria-hidden="true" onClick={() => setSidebarOpen(false)} />
+    )}
     <main className="workspace">
       <header className="topbar">
         <div className="topbar-left">
           <button className="icon-button sidebar-toggle-btn" title={sidebarOpen ? 'Collapse control bar' : 'Expand control bar'} aria-label={sidebarOpen ? 'Collapse control bar' : 'Expand control bar'} onClick={() => setSidebarOpen(prev => !prev)}>
             {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
           </button>
-          <div className="breadcrumb">Workspace <ChevronRight size={13}/><strong>{tab === 'mission' ? 'Flight simulation' : 'Scenario results'}</strong></div>
+          <div className="breadcrumb"><span className="breadcrumb-root">Workspace</span> <ChevronRight size={13} className="breadcrumb-chevron"/><strong>{tab === 'mission' ? 'Flight simulation' : 'Scenario results'}</strong></div>
         </div>
 
         {tab === 'mission' && (
           <div className="topbar-panel-symbols" aria-label="Toggle GIS overlay panels">
-            <button className={`symbol-btn ${showMetrics ? 'active' : ''}`} title="Toggle Metrics Panel" aria-label="Toggle Metrics Panel" onClick={() => setShowMetrics(prev => !prev)}>
+            <button className={`symbol-btn ${showMetrics ? 'active' : ''}`} title="Toggle Metrics Panel" aria-label="Toggle Metrics Panel" onClick={() => toggleOverlay('metrics')}>
               <Activity size={16} />
             </button>
-            <button className={`symbol-btn ${showControls ? 'active' : ''}`} title="Toggle Playback Toolbar" aria-label="Toggle Playback Toolbar" onClick={() => setShowControls(prev => !prev)}>
+            <button className={`symbol-btn ${showControls ? 'active' : ''}`} title="Toggle Playback Toolbar" aria-label="Toggle Playback Toolbar" onClick={() => toggleOverlay('controls')}>
               <Play size={16} />
             </button>
-            <button className={`symbol-btn ${showAltitude ? 'active' : ''}`} title="Toggle Vertical Altitude Profile HUD" aria-label="Toggle Vertical Altitude Profile HUD" onClick={() => setShowAltitude(prev => !prev)}>
+            <button className={`symbol-btn ${showAltitude ? 'active' : ''}`} title="Toggle Vertical Altitude Profile HUD" aria-label="Toggle Vertical Altitude Profile HUD" onClick={() => toggleOverlay('altitude')}>
               <Mountain size={16} />
             </button>
-            <button className={`symbol-btn ${showOptions ? 'active' : ''}`} title="Toggle Landing Options Panel" aria-label="Toggle Landing Options Panel" onClick={() => setShowOptions(prev => !prev)}>
+            <button className={`symbol-btn ${showOptions ? 'active' : ''}`} title="Toggle Landing Options Panel" aria-label="Toggle Landing Options Panel" onClick={() => toggleOverlay('options')}>
               <SlidersHorizontal size={16} />
             </button>
-            <button className={`symbol-btn ${showEvents ? 'active' : ''}`} title="Toggle Mission Events Log" aria-label="Toggle Mission Events Log" onClick={() => setShowEvents(prev => !prev)}>
+            <button className={`symbol-btn ${showEvents ? 'active' : ''}`} title="Toggle Mission Events Log" aria-label="Toggle Mission Events Log" onClick={() => toggleOverlay('events')}>
               <Radio size={16} />
             </button>
             <div className="symbol-divider" />
@@ -224,14 +267,16 @@ export default function App(){
         <div className="top-actions">
           <div className="cloud-status-chip" title={cloudDb?.message || 'Connecting to backend...'}>
             <Cloud size={14} className={cloudDb?.status === 'connected' ? 'cloud-icon-active' : 'cloud-icon-muted'} />
-            <span>{cloudDb?.status === 'connected' ? 'Atlas Online' : cloudDb?.status === 'unconfigured' ? 'Atlas Setup' : 'Atlas Offline'}</span>
+            <span className="cloud-chip-text">{cloudDb?.status === 'connected' ? 'Atlas Online' : cloudDb?.status === 'unconfigured' ? 'Atlas Setup' : 'Atlas Offline'}</span>
             <span className={`cloud-pulse-dot ${cloudDb?.status || 'disconnected'}`} />
           </div>
           <button className="button mobile-tab" onClick={() => setTab(tab === 'mission' ? 'results' : 'mission')}>{tab === 'mission' ? 'Results' : 'Mission'}</button>
-          <button className="button button-white" onClick={handleSaveToAtlas} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
-            <Cloud size={16}/><span>{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
+          <button className="button button-white action-btn-compact" onClick={handleSaveToAtlas} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
+            <Cloud size={16}/><span className="action-btn-text">{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
           </button>
-          <button className="button button-white" onClick={exportRun}><Download size={16}/><span>Export JSON</span></button>
+          <button className="button button-white action-btn-compact" onClick={exportRun} title="Export flight data as JSON">
+            <Download size={16}/><span className="action-btn-text">Export JSON</span>
+          </button>
         </div>
       </header>
       <div className="page-content">
@@ -326,6 +371,7 @@ export default function App(){
             {showOptions && (
               <div className="gis-overlay-right-panel">
                 <section className="panel options-panel">
+                  <div className="sheet-drag-handle" />
                   <div className="panel-heading">
                     <h2>Landing options</h2>
                     <div className="heading-right">
@@ -363,6 +409,7 @@ export default function App(){
             {showEvents && (
               <div className="gis-overlay-bottom-left">
                 <section className="panel event-panel">
+                  <div className="sheet-drag-handle" />
                   <div className="panel-heading">
                     <h2><Radio size={15}/> Mission events</h2>
                     <div className="heading-right">
@@ -387,6 +434,7 @@ export default function App(){
             {showAltitude && (
               <div className="gis-overlay-altitude">
                 <section className="panel altitude-panel">
+                  <div className="sheet-drag-handle" />
                   <div className="panel-heading">
                     <h2><Mountain size={15}/> Vertical flight profile (2.5D)</h2>
                     <div className="heading-right">
