@@ -32,6 +32,13 @@
   --deck-shadow: 0 10px 28px #233f6912, 0 2px 5px #233f6908;
   --accent-shadow: 0 5px 16px #2856cf26;
   --motion-ease: cubic-bezier(.2, .7, .25, 1);
+  --sidebar-box-bg: #ffffff;
+  --sidebar-box-border: #5bbfae;
+  --sidebar-box-border-hover: #008b75;
+  --sidebar-box-shadow: 0 1px 4px rgba(0, 139, 117, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --sidebar-box-shadow-hover: 0 3px 12px rgba(0, 139, 117, 0.16);
+  --sidebar-box-header-border: rgba(0, 139, 117, 0.2);
+  --sidebar-box-title-color: #007260;
 }
 
 :root[data-theme="dark"] {
@@ -66,6 +73,13 @@
   --map-zone-line: #f4cd8b;
   --deck-shadow: 0 14px 36px #02061155, inset 0 1px 0 #ffffff06;
   --accent-shadow: 0 5px 20px #77a9ff20;
+  --sidebar-box-bg: #131c2c;
+  --sidebar-box-border: rgba(45, 212, 191, 0.45);
+  --sidebar-box-border-hover: #2dd4bf;
+  --sidebar-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(45, 212, 191, 0.15);
+  --sidebar-box-shadow-hover: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(45, 212, 191, 0.35);
+  --sidebar-box-header-border: rgba(45, 212, 191, 0.22);
+  --sidebar-box-title-color: #2dd4bf;
 }
 
 /* Map existing component tokens to the same palette in both themes. */
@@ -141,7 +155,35 @@
 :root .range-heading strong { font-size: 14px; font-variant-numeric: tabular-nums; }
 :root input[type="range"] { accent-color: var(--ui-accent); height: 6px; margin: 14px 0 20px; }
 :root .route-connector { color: var(--ui-accent); }
-:root .route-connector span { border-color: var(--line-strong); }
+:root .sidebar-box {
+  background: var(--sidebar-box-bg);
+  border: 1.5px solid var(--sidebar-box-border) !important;
+  border-radius: 12px;
+  padding: 13px 12px;
+  margin-top: 12px;
+  box-shadow: var(--sidebar-box-shadow);
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+  box-sizing: border-box;
+}
+:root .sidebar-box:hover {
+  border-color: var(--sidebar-box-border-hover) !important;
+  box-shadow: var(--sidebar-box-shadow-hover);
+}
+:root .sidebar-box-header {
+  border-bottom: 1px solid var(--sidebar-box-header-border);
+}
+:root .sidebar-box-title {
+  color: var(--sidebar-box-title-color);
+}
+:root .sidebar-box-icon {
+  color: var(--sidebar-box-title-color);
+}
+:root .sidebar-box .model-settings {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
 :root .model-settings { background: var(--surface-inset); border-color: var(--line); border-radius: 12px; font-size: 13px; padding: 12px; }
 :root .model-settings summary { min-height: 24px; font-size: 14px; }
 :root :is(.model-settings p, .sidebar-bottom, .sidebar-bottom small) { font-size: 12px; line-height: 1.6; }
