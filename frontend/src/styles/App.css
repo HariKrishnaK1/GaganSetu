@@ -249,6 +249,8 @@ input[type=range] { accent-color: #008b75; width: 100%; height: 5px; margin: 10p
 .button-sm { min-height: 30px; padding: 5px 12px; font-size: 12px; border-radius: 6px; }
 .theme-toggle-btn { width: 35px; height: 35px; padding: 0; display: grid; place-items: center; border-radius: 8px; color: var(--text-main); }
 .mobile-tab { display: none; }
+.mobile-header-brand { display: none; }
+.sidebar-mobile-controls { display: none; }
 
 /* SEPARATE STANDALONE HEADER SYMBOL BUTTONS */
 .topbar-panel-symbols { display: flex; align-items: center; gap: 6px; background: transparent; border: none; padding: 0; flex-shrink: 0; }
@@ -517,59 +519,136 @@ tr:hover td { background: #f8fafc; }
     max-height: 100dvh;
   }
 
-  /* TOPBAR ADAPTABILITY */
+  /* ULTRA-MINIMAL TOPBAR (ONLY TOGGLE BTN + GAGANSETU TITLE) */
+  .desktop-only {
+    display: none !important;
+  }
   .topbar {
     height: 52px;
-    padding: 0 10px;
-    gap: 6px;
+    padding: 0 12px;
+    gap: 10px;
+    justify-content: flex-start;
   }
   .topbar-left {
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
   }
   .sidebar-toggle-btn {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 8px;
   }
-  .breadcrumb-root, .breadcrumb-chevron {
-    display: none;
+  .mobile-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 750;
+    color: var(--text-heading);
+    letter-spacing: -0.3px;
+    user-select: none;
   }
-  .breadcrumb {
-    font-size: 12px;
+  .mobile-brand-icon {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #008b75 0%, #007260 100%);
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 139, 117, 0.3);
   }
-  .topbar-panel-symbols {
-    gap: 4px;
+  .mobile-brand-icon svg {
+    width: 16px;
+    height: 16px;
   }
-  .symbol-btn {
-    width: 32px;
-    height: 32px;
+
+  /* MOBILE SIDEBAR CONTROLS & HUD */
+  .sidebar-mobile-controls {
+    display: block;
+    margin-top: 6px;
   }
-  .symbol-divider {
-    height: 18px;
-    margin: 0 1px;
+  .sidebar-hud-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
   }
-  .top-actions {
-    gap: 4px;
+  .hud-pill-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--sidebar-input-bg);
+    border: 1px solid var(--sidebar-input-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--sidebar-label);
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    width: 100%;
+    min-height: 38px;
+    box-sizing: border-box;
   }
-  .action-btn-text {
-    display: none;
+  .hud-pill-btn:hover {
+    background: var(--sidebar-nav-hover);
+    color: var(--sidebar-heading);
   }
-  .action-btn-compact {
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    min-height: 32px;
-    min-width: 32px;
+  .hud-pill-btn.active {
+    background: #008b75;
+    color: #ffffff;
+    border-color: #007260;
+    box-shadow: 0 2px 6px rgba(0, 139, 117, 0.35);
+  }
+  .hud-pill-btn.active svg {
+    color: #ffffff;
+  }
+  .theme-pill-btn {
+    grid-column: span 2;
     justify-content: center;
+    border-style: dashed;
   }
-  .mobile-tab {
-    display: inline-flex;
-    padding: 4px 10px;
-    font-size: 11px;
-    min-height: 30px;
+  .sidebar-cloud-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--sidebar-input-bg);
+    border: 1px solid var(--sidebar-input-border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-top: 8px;
   }
-  .cloud-status-chip {
-    padding: 4px 8px;
+  .sidebar-cloud-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: 11.5px;
+  }
+  .sidebar-cloud-meta strong {
+    color: var(--sidebar-heading);
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .sidebar-cloud-meta small {
+    color: var(--sidebar-eyebrow);
     font-size: 10px;
+  }
+  .sidebar-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .sidebar-action-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 36px;
+    font-size: 12px;
   }
 
   /* FULL-CANVAS GIS VIEW */

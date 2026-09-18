@@ -226,6 +226,52 @@ export default function App(){
 
         <details className="model-settings"><summary>Aircraft model <CircleHelp size={14}/></summary><dl><div><dt>Capacity</dt><dd>38 kWh</dd></div><div><dt>Cruise speed</dt><dd>120 km/h</dd></div><div><dt>Cruise energy</dt><dd>1 kWh/km</dd></div><div><dt>Take-off / landing</dt><dd>1.5 / 1.5 kWh</dd></div><div><dt>Landing reserve</dt><dd>5 kWh</dd></div></dl><p>Illustrative parameters. Fixed speed, instantaneous turns and bidirectional corridors.</p></details>
         <div className="sidebar-bottom"><span className="version-badge">v0.2</span><span>Software simulation<small>Hypothetical operational data</small></span></div>
+
+        {/* MOBILE HUD CONTROLS & QUICK ACTIONS (Moved from Header for Mobile Screens) */}
+        <div className="sidebar-mobile-controls">
+          <div className="sidebar-divider"/>
+          <div className="section-eyebrow">FLIGHT DECK OVERLAYS</div>
+          <div className="sidebar-hud-grid">
+            <button type="button" className={`hud-pill-btn ${showMetrics ? 'active' : ''}`} onClick={() => { toggleOverlay('metrics'); if(isMobile) setSidebarOpen(false); }}>
+              <Activity size={15}/> <span>Metrics HUD</span>
+            </button>
+            <button type="button" className={`hud-pill-btn ${showControls ? 'active' : ''}`} onClick={() => { toggleOverlay('controls'); if(isMobile) setSidebarOpen(false); }}>
+              <Play size={15}/> <span>Playback</span>
+            </button>
+            <button type="button" className={`hud-pill-btn ${showAltitude ? 'active' : ''}`} onClick={() => { toggleOverlay('altitude'); if(isMobile) setSidebarOpen(false); }}>
+              <Mountain size={15}/> <span>Altitude 2.5D</span>
+            </button>
+            <button type="button" className={`hud-pill-btn ${showOptions ? 'active' : ''}`} onClick={() => { toggleOverlay('options'); if(isMobile) setSidebarOpen(false); }}>
+              <SlidersHorizontal size={15}/> <span>Landing Options</span>
+            </button>
+            <button type="button" className={`hud-pill-btn ${showEvents ? 'active' : ''}`} onClick={() => { toggleOverlay('events'); if(isMobile) setSidebarOpen(false); }}>
+              <Radio size={15}/> <span>Events Log</span>
+            </button>
+            <button type="button" className="hud-pill-btn theme-pill-btn" onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}>
+              {theme === 'dark' ? <Sun size={15}/> : <Moon size={15}/>}
+              <span>{theme === 'dark' ? 'Light Theme' : 'Dark Theme'}</span>
+            </button>
+          </div>
+
+          <div className="sidebar-divider"/>
+          <div className="section-eyebrow">CLOUD ARCHIVE & DATA</div>
+          <div className="sidebar-cloud-card" title={cloudDb?.message || 'Connecting to backend...'}>
+            <Cloud size={16} className={cloudDb?.status === 'connected' ? 'cloud-icon-active' : 'cloud-icon-muted'} />
+            <div className="sidebar-cloud-meta">
+              <strong>MongoDB Atlas</strong>
+              <small>{cloudDb?.status === 'connected' ? 'Cluster Online' : cloudDb?.status === 'unconfigured' ? 'Setup Needed' : 'Offline'}</small>
+            </div>
+            <span className={`cloud-pulse-dot ${cloudDb?.status || 'disconnected'}`} />
+          </div>
+          <div className="sidebar-btn-group">
+            <button type="button" className="button button-primary sidebar-action-btn" onClick={() => { handleSaveToAtlas(); if(isMobile) setSidebarOpen(false); }} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
+              <Cloud size={15}/> <span>{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
+            </button>
+            <button type="button" className="button button-white sidebar-action-btn" onClick={() => { exportRun(); if(isMobile) setSidebarOpen(false); }} title="Export flight data as JSON">
+              <Download size={15}/> <span>Export Run JSON</span>
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
     {sidebarOpen && (
@@ -237,11 +283,17 @@ export default function App(){
           <button className="icon-button sidebar-toggle-btn" title={sidebarOpen ? 'Collapse control bar' : 'Expand control bar'} aria-label={sidebarOpen ? 'Collapse control bar' : 'Expand control bar'} onClick={() => setSidebarOpen(prev => !prev)}>
             {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
           </button>
-          <div className="breadcrumb"><span className="breadcrumb-root">Workspace</span> <ChevronRight size={13} className="breadcrumb-chevron"/><strong>{tab === 'mission' ? 'Flight simulation' : 'Scenario results'}</strong></div>
+          {/* Mobile minimal heading */}
+          <div className="mobile-header-brand">
+            <span className="mobile-brand-icon"><Route size={18}/></span>
+            <strong>GaganSetu</strong>
+          </div>
+          {/* Desktop breadcrumb */}
+          <div className="breadcrumb desktop-only"><span className="breadcrumb-root">Workspace</span> <ChevronRight size={13} className="breadcrumb-chevron"/><strong>{tab === 'mission' ? 'Flight simulation' : 'Scenario results'}</strong></div>
         </div>
 
         {tab === 'mission' && (
-          <div className="topbar-panel-symbols" aria-label="Toggle GIS overlay panels">
+          <div className="topbar-panel-symbols desktop-only" aria-label="Toggle GIS overlay panels">
             <button className={`symbol-btn ${showMetrics ? 'active' : ''}`} title="Toggle Metrics Panel" aria-label="Toggle Metrics Panel" onClick={() => toggleOverlay('metrics')}>
               <Activity size={16} />
             </button>
@@ -264,13 +316,12 @@ export default function App(){
           </div>
         )}
 
-        <div className="top-actions">
+        <div className="top-actions desktop-only">
           <div className="cloud-status-chip" title={cloudDb?.message || 'Connecting to backend...'}>
             <Cloud size={14} className={cloudDb?.status === 'connected' ? 'cloud-icon-active' : 'cloud-icon-muted'} />
             <span className="cloud-chip-text">{cloudDb?.status === 'connected' ? 'Atlas Online' : cloudDb?.status === 'unconfigured' ? 'Atlas Setup' : 'Atlas Offline'}</span>
             <span className={`cloud-pulse-dot ${cloudDb?.status || 'disconnected'}`} />
           </div>
-          <button className="button mobile-tab" onClick={() => setTab(tab === 'mission' ? 'results' : 'mission')}>{tab === 'mission' ? 'Results' : 'Mission'}</button>
           <button className="button button-white action-btn-compact" onClick={handleSaveToAtlas} disabled={savingCloud} title="Archive this simulation flight to MongoDB Atlas">
             <Cloud size={16}/><span className="action-btn-text">{savingCloud ? 'Archiving...' : 'Save to Atlas'}</span>
           </button>
